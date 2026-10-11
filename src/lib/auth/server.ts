@@ -190,23 +190,14 @@ const staticTrustedOrigins: string[] = explicitBaseURL
       "http://127.0.0.1:3000",
     ];
 
-const trustedOrigins = async (request?: Request): Promise<string[]> => {
-  const origin = request?.headers.get("origin");
-  if (!origin) return [];
-
-  try {
-    const hostname = new URL(origin).hostname;
-    const isKnownPreviewHost = previewAllowedHosts.some((host) =>
-      host.startsWith("*.") ? hostname.endsWith(host.slice(1)) : hostname === host,
-    );
-    const isKnownLocalHost = ["localhost", "127.0.0.1", "::1"].includes(hostname);
-    const isConfiguredOrigin = configuredOrigins.includes(origin) || staticTrustedOrigins.includes(origin);
-
-    return isKnownPreviewHost || isKnownLocalHost || isConfiguredOrigin ? [origin] : [];
-  } catch {
-    return [];
-  }
-};
+// A function that returns [] drops the static list during Better Auth's origin
+// check. Keep the array so cinevo.fourtee2.digital is always trusted.
+const trustedOrigins = [
+  ...staticTrustedOrigins,
+  "https://*.vercel.app",
+  "https://*.fourtee2.digital",
+  "https://watchcinevo.fourtee2.co",
+];
 
 // Static broker OAuth endpoints (skip OIDC discovery on every sign-in / callback).
 // Discovery would cost an extra network hop to the broker before the popup can
